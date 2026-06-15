@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Register Audit Tool — Internal Auditor</title>
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2c5282;
+            --accent: #c53030;
+            --accent-light: #e53e3e;
+            --amber: #d69e2e;
+            --amber-light: #ecc94b;
+            --green: #38a169;
+            --green-light: #48bb78;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 0 20px; }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 30px 0;
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        header h1 { font-size: 1.8rem; font-weight: 600; letter-spacing: -0.5px; }
+        header p { opacity: 0.9; margin-top: 5px; font-size: 0.95rem; }
+        .header-flex { display: flex; justify-content: space-between; align-items: center; }
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .badge-offline { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); }
+        .badge-secure { background: var(--green); color: white; }
+
+        /* Upload Section */
+        .upload-section {
+            background: var(--card-bg);
+            margin: 30px auto;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            text-align: center;
+            border: 2px dashed var(--border);
+            transition: all 0.3s ease;
+        }
+        .upload-section.dragover {
+            border-color: var(--primary-light);
+            background: #ebf8ff;
+        }
+        .upload-section h2 { color: var(--primary); margin-bottom: 10px; }
+        .upload-section p { color: var(--text-light); margin-bottom: 25px; }
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0; top: 0; opacity: 0;
+            width: 100%; height: 100%;
+            cursor: pointer;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 6px rgba(30,58,95,0.3);
+        }
+        .btn-primary:hover { background: var(--primary-light); transform: translateY(-1px); }
+        .btn-success {
+            background: var(--green);
+            color: white;
+        }
+        .btn-success:hover { background: var(--green-light); }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        .btn-outline:hover { background: var(--primary); color: white; }
+        .file-name { margin-top: 15px; font-weight: 500; color: var(--primary); }
+
+        /* Dashboard */
+        .dashboard { display: none; margin: 30px 0; }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .metric-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            border-left: 4px solid var(--primary);
+            transition: transform 0.2s;
+        }
+        .metric-card:hover { transform: translateY(-2px); }
+        .metric-card.red { border-left-color: var(--accent); }
+        .metric-card.amber { border-left-color: var(--amber); }
+        .metric-card.green { border-left-color: var(--green); }
+        .metric-label { font-size: 0.85rem; color: var(--text-light); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .metric-value { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 8px 0; }
+        .metric-card.red .metric-value { color: var(--accent); }
+        .metric-card.amber .metric-value { color: var(--amber); }
+        .metric-card.green .metric-value { color: var(--green); }
+        .metric-sub { font-size: 0.85rem; color: var(--text-light); }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 4px; background: var(--card-bg); padding: 8px; border-radius: 10px; box-shadow: var(--shadow); margin-bottom: 20px; overflow-x: auto; }
+        .tab-btn {
+            padding: 10px 20px;
+            border: none;
+            background: transparent;
+            color: var(--text-light);
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            white-space: nowrap;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .tab-btn:hover { background: var(--bg); color: var(--text); }
+        .tab-btn.active { background: var(--primary); color: white; }
+        .tab-btn .count {
+            display: inline-block;
+            margin-left: 6px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            background: rgba(255,255,255,0.2);
+        }
+        .tab-btn.active .count { background: rgba(255,255,255,0.3); }
+
+        /* Tables */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .section-title { font-size: 1.4rem; color: var(--primary); font-weight: 600; }
+        .filter-box {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .filter-box input, .filter-box select {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        .filter-box input:focus, .filter-box select:focus { border-color: var(--primary-light); }
+
+        .table-wrapper {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        thead { background: var(--primary); color: white; }
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.78rem;
+            letter-spacing: 0.5px;
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            background: var(--primary);
+        }
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+        tbody tr:hover { background: #f7fafc; }
+        tbody tr:last-child td { border-bottom: none; }
+
+        .severity {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .severity-high { background: #fed7d7; color: #c53030; }
+        .severity-medium { background: #fefcbf; color: #d69e2e; }
+        .severity-low { background: #c6f6d5; color: #276749; }
+
+        .flag-reason { max-width: 300px; line-height: 1.5; }
+        .columns-involved { font-size: 0.82rem; color: var(--text-light); font-style: italic; }
+
+        .row-num { font-weight: 700; color: var(--primary); font-family: monospace; }
+
+        /* Systemic Observations */
+        .observations-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+        }
+        .obs-card {
+            background: var(--card-bg);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+        .obs-card h3 { color: var(--primary); margin-bottom: 15px; font-size: 1.1rem; }
+        .obs-value { font-size: 1.8rem; font-weight: 700; color: var(--accent); margin-bottom: 5px; }
+        .obs-desc { color: var(--text-light); font-size: 0.9rem; }
+        .top-list { list-style: none; }
+        .top-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .top-list li:last-child { border-bottom: none; }
+        .top-name { font-weight: 600; color: var(--text); }
+        .top-value { color: var(--primary); font-weight: 700; }
+
+        /* Progress & Loading */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.95);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .loading-overlay.active { display: flex; }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { margin-top: 20px; color: var(--primary); font-weight: 600; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+        .empty-state svg { width: 80px; height: 80px; margin-bottom: 20px; opacity: 0.3; }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .metrics-grid { grid-template-columns: 1fr; }
+            .tabs { flex-wrap: wrap; }
+            .section-header { flex-direction: column; align-items: flex-start; }
+            th, td { padding: 10px 12px; font-size: 0.82rem; }
+        }
+
+        /* Print */
+        @media print {
+            header, .upload-section, .tabs, .filter-box, .btn { display: none !important; }
+            .tab-content { display: block !important; page-break-before: always; }
+            .dashboard { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-flex">
+            <div>
+                <h1>🔍 Purchase Register Audit Tool</h1>
+                <p>Internal Audit & Compliance — Indian Pvt Ltd Company</p>
+            </div>
+            <div style="text-align: right;">
+                <span class="badge badge-offline">Fully Offline</span>
+                <span class="badge badge-secure" style="margin-left: 8px;">Client-Side Only</span>
+                <p style="margin-top: 8px; font-size: 0.8rem; opacity: 0.8;">No data leaves this browser</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Upload Section -->
+        <div class="upload-section" id="uploadSection">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2c5282" stroke-width="1.5" style="margin-bottom: 15px;">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <h2>Upload Purchase Register</h2>
+            <p>Drag & drop your Excel (.xlsx) or CSV file here, or click to browse</p>
+            <div class="file-input-wrapper">
+                <button class="btn btn-primary">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Select File
+                </button>
+                <input type="file" id="fileInput" accept=".csv,.xlsx" />
+            </div>
+            <div class="file-name" id="fileName"></div>
+            <div style="margin-top: 15px; font-size: 0.8rem; color: var(--text-light);">
+                Expected columns: Entry Date, Supplier Name, Supplier Code, Indent Number, Item Code, Basic Rate, AQTY, etc.
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div class="dashboard" id="dashboard">
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-label">Total Records</div>
+                    <div class="metric-value" id="totalRows">0</div>
+                    <div class="metric-sub">Rows processed</div>
+                </div>
+                <div class="metric-card red">
+                    <div class="metric-label">Total Flags</div>
+                    <div class="metric-value" id="totalFlags">0</div>
+                    <div class="metric-sub">Across all tiers</div>
+                </div>
+                <div class="metric-card red">
+                    <div class="metric-label">High Risk</div>
+                    <div class="metric-value" id="highRiskCount">0</div>
+                    <div class="metric-sub">Requires immediate attention</div>
+                </div>
+                <div class="metric-card amber">
+                    <div class="metric-label">Medium Risk</div>
+                    <div class="metric-value" id="mediumRiskCount">0</div>
+                    <div class="metric-sub">Review recommended</div>
+                </div>
+                <div class="metric-card green">
+                    <div class="metric-label">Low Risk</div>
+                    <div class="metric-value" id="lowRiskCount">0</div>
+                    <div class="metric-sub">Minor observations</div>
+                </div>
+                <div class="metric-card red">
+                    <div class="metric-label">Est. Financial Impact</div>
+                    <div class="metric-value" id="financialImpact">₹0</div>
+                    <div class="metric-sub">From conversion factor discrepancies</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-bottom: 25px; flex-wrap: wrap;">
+                <button class="btn btn-success" onclick="exportReport()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export Full Report (Excel)
+                </button>
+                <button class="btn btn-outline" onclick="location.reload()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                    New Audit
+                </button>
+            </div>
+
+            <div class="tabs" id="tabs">
+                <button class="tab-btn active" onclick="switchTab('tier1')">Tier 1: Date & Qty<span class="count" id="tabTier1">0</span></button>
+                <button class="tab-btn" onclick="switchTab('tier2')">Tier 2: Process Control<span class="count" id="tabTier2">0</span></button>
+                <button class="tab-btn" onclick="switchTab('tier3')">Tier 3: Fraud Indicators<span class="count" id="tabTier3">0</span></button>
+                <button class="tab-btn" onclick="switchTab('tier4')">Tier 4: Systemic Observations<span class="count" id="tabTier4">0</span></button>
+                <button class="tab-btn" onclick="switchTab('all')">All Findings<span class="count" id="tabAll">0</span></button>
+            </div>
+
+            <!-- Tier 1 -->
+            <div class="tab-content active" id="tier1">
+                <div class="section-header">
+                    <div class="section-title">Tier 1 — Date Sequence & Quantity Reconciliation</div>
+                    <div class="filter-box">
+                        <input type="text" id="filterTier1" placeholder="Filter findings..." onkeyup="filterTable('tier1')" />
+                        <select id="severityTier1" onchange="filterTable('tier1')">
+                            <option value="">All Severities</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="tableTier1">
+                        <thead><tr><th>Row</th><th>Check</th><th>Flag Reason</th><th>Severity</th><th>Key Values</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tier 2 -->
+            <div class="tab-content" id="tier2">
+                <div class="section-header">
+                    <div class="section-title">Tier 2 — Process Control</div>
+                    <div class="filter-box">
+                        <input type="text" id="filterTier2" placeholder="Filter findings..." onkeyup="filterTable('tier2')" />
+                        <select id="severityTier2" onchange="filterTable('tier2')">
+                            <option value="">All Severities</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="tableTier2">
+                        <thead><tr><th>Row</th><th>Check</th><th>Flag Reason</th><th>Severity</th><th>Key Values</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tier 3 -->
+            <div class="tab-content" id="tier3">
+                <div class="section-header">
+                    <div class="section-title">Tier 3 — Fraud Indicators</div>
+                    <div class="filter-box">
+                        <input type="text" id="filterTier3" placeholder="Filter findings..." onkeyup="filterTable('tier3')" />
+                        <select id="severityTier3" onchange="filterTable('tier3')">
+                            <option value="">All Severities</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="tableTier3">
+                        <thead><tr><th>Row</th><th>Check</th><th>Flag Reason</th><th>Severity</th><th>Key Values</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tier 4 -->
+            <div class="tab-content" id="tier4">
+                <div class="section-header">
+                    <div class="section-title">Tier 4 — Systemic Observations</div>
+                </div>
+                <div class="observations-grid" id="observationsGrid">
+                    <!-- Populated by JS -->
+                </div>
+                <div style="margin-top: 30px;">
+                    <div class="section-title" style="margin-bottom: 15px;">Approval Concentration Analysis</div>
+                    <div class="table-wrapper">
+                        <table id="tableTier4">
+                            <thead><tr><th>Approver</th><th>Transaction Count</th><th>Total Value (₹)</th><th>% of Total</th><th>Status</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- All Findings -->
+            <div class="tab-content" id="all">
+                <div class="section-header">
+                    <div class="section-title">All Flagged Findings</div>
+                    <div class="filter-box">
+                        <input type="text" id="filterAll" placeholder="Filter findings..." onkeyup="filterTable('all')" />
+                        <select id="severityAll" onchange="filterTable('all')">
+                            <option value="">All Severities</option>
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-wrapper">
+                    <table id="tableAll">
+                        <thead><tr><th>Row</th><th>Tier</th><th>Check</th><th>Flag Reason</th><th>Severity</th><th>Key Values</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="spinner"></div>
+        <div class="loading-text" id="loadingText">Processing audit checks...</div>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>🔒 This tool processes all data locally in your browser. No information is transmitted to any server.</p>
+            <p style="margin-top: 5px;">Built for Internal Audit Compliance — Indian Companies Act & GST Framework</p>
+        </div>
+    </footer>
+
+    <!-- SheetJS for Excel parsing -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <script>
+        // ==================== UTILITY FUNCTIONS ====================
+
+        function parseDate(val) {
+            if (!val) return null;
+            if (val instanceof Date) return val;
+            if (typeof val === 'number' && val > 30000 && val < 50000) {
+                // Excel serial date
+                return new Date((val - 25569) * 86400 * 1000);
+            }
+            const str = String(val).trim();
+            if (!str) return null;
+
+            // Try DD/MM/YYYY or DD-MM-YYYY
+            let m = str.match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+            if (m) {
+                let d = parseInt(m[1]), mo = parseInt(m[2]), y = parseInt(m[3]);
+                if (y < 100) y += 2000;
+                return new Date(y, mo - 1, d);
+            }
+            // Try YYYY-MM-DD
+            m = str.match(/^(\d{4})[\/\-\.](\d{1,2})[\/\-\.](\d{1,2})$/);
+            if (m) {
+                return new Date(parseInt(m[1]), parseInt(m[2]) - 1, parseInt(m[3]));
+            }
+            // Fallback
+            const d = new Date(str);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        function formatDate(d) {
+            if (!d || isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        function parseNumber(val) {
+            if (val === null || val === undefined || val === '') return null;
+            if (typeof val === 'number') return val;
+            const str = String(val).replace(/[₹,\s]/g, '');
+            const n = parseFloat(str);
+            return isNaN(n) ? null : n;
+        }
+
+        function normalizeText(val) {
+            if (val === null || val === undefined) return '';
+            return String(val).trim().toUpperCase();
+        }
+
+        function isBlank(val) {
+            return val === null || val === undefined || String(val).trim() === '';
+        }
+
+        function daysBetween(d1, d2) {
+            if (!d1 || !d2) return null;
+            const ms = d1.getTime() - d2.getTime();
+            return Math.round(ms / (1000 * 60 * 60 * 24));
+        }
+
+        function formatCurrency(num) {
+            if (num === null || num === undefined || isNaN(num)) return '₹0';
+            return '₹' + num.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+        }
+
+        // ==================== CSV PARSER ====================
+        function parseCSV(text) {
+            const lines = text.split(/\r?\n/);
+            const headers = [];
+            const result = [];
+            let inQuotes = false;
+            let current = '';
+            let row = [];
+
+            function parseLine(line) {
+                const chars = line.split('');
+                for (let i = 0; i < chars.length; i++) {
+                    const char = chars[i];
+                    if (char === '"') {
+                        if (inQuotes && chars[i + 1] === '"') {
+                            current += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+            }
+
+            let first = true;
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                parseLine(line);
+                row.push(current.trim());
+                current = '';
+                if (first) {
+                    headers.push(...row);
+                    first = false;
+                } else {
+                    const obj = {};
+                    headers.forEach((h, i) => obj[h] = row[i] || '');
+                    result.push(obj);
+                }
+                row = [];
+            }
+            return result;
+        }
+
+        // ==================== DATA PROCESSING ====================
+        let auditData = [];
+        let allFindings = [];
+        let systemicData = {};
+
+        const REQUIRED_COLUMNS = [
+            'Entry Date', 'Supplier Name', 'Supplier Code', 'Indent Number', 'INDENT LINE ITEM',
+            'Order Number', 'ORDER LINE ITEM', 'Item Code', 'Item Details', 'AUM', 'UM',
+            'GRN Number', 'GRN Date', 'Inspected Date', 'Approved Date', 'Party Bill Number',
+            'Party Bill Date', 'A/c Voucher Number', 'A/c Voucher Date', 'TRUCK NO',
+            'Approved By Name', 'Division', 'Godown/Location', 'Batch Number', 'QC REMARK',
+            'Gate Entry Number', 'Carrier/Transporter Name', 'Vehicle No', 'L.R.No.',
+            'L.R.Date', 'GRN LINE ITEMS', 'ORDER DUE DATE', 'Inspected By', 'Inspected By Name',
+            'Challan Quantity', 'Accepted Quantity', 'Reached Quantity', 'Conv Fact',
+            'Basic Rate', 'AQTY', 'Item Conversion', 'PO Item Conversion'
+        ];
+
+        function normalizeRow(row, idx) {
+            const r = { __rowIndex: idx + 2 };
+            REQUIRED_COLUMNS.forEach(col => {
+                // Find column case-insensitively
+                const key = Object.keys(row).find(k => k.toLowerCase().trim() === col.toLowerCase().trim());
+                r[col] = key !== undefined ? row[key] : '';
+            });
+
+            // Parse dates
+            r._entryDate = parseDate(r['Entry Date']);
+            r._grnDate = parseDate(r['GRN Date']);
+            r._inspectedDate = parseDate(r['Inspected Date']);
+            r._approvedDate = parseDate(r['Approved Date']);
+            r._partyBillDate = parseDate(r['Party Bill Date']);
+            r._voucherDate = parseDate(r['A/c Voucher Date']);
+            r._lrDate = parseDate(r['L.R.Date']);
+            r._orderDueDate = parseDate(r['ORDER DUE DATE']);
+
+            // Parse numbers
+            r._challanQty = parseNumber(r['Challan Quantity']);
+            r._acceptedQty = parseNumber(r['Accepted Quantity']);
+            r._reachedQty = parseNumber(r['Reached Quantity']);
+            r._convFact = parseNumber(r['Conv Fact']);
+            r._basicRate = parseNumber(r['Basic Rate']);
+            r._aqty = parseNumber(r['AQTY']);
+            r._itemConv = parseNumber(r['Item Conversion']);
+            r._poItemConv = parseNumber(r['PO Item Conversion']);
+
+            // Normalize text
+            r._supplierName = normalizeText(r['Supplier Name']);
+            r._supplierCode = normalizeText(r['Supplier Code']);
+            r._itemCode = normalizeText(r['Item Code']);
+            r._approvedBy = normalizeText(r['Approved By Name']);
+            r._transporter = normalizeText(r['Carrier/Transporter Name']);
+            r._vehicleNo = normalizeText(r['Vehicle No']);
+            r._truckNo = normalizeText(r['TRUCK NO']);
+            r._lrNo = normalizeText(r['L.R.No.']);
+            r._division = normalizeText(r['Division']);
+            r._godown = normalizeText(r['Godown/Location']);
+            r._batchNo = normalizeText(r['Batch Number']);
+            r._qcRemark = normalizeText(r['QC REMARK']);
+            r._indentNo = normalizeText(r['Indent Number']);
+            r._orderNo = normalizeText(r['Order Number']);
+            r._gateEntry = normalizeText(r['Gate Entry Number']);
+            r._partyBillNo = normalizeText(r['Party Bill Number']);
+
+            // Transaction value
+            r._txnValue = (r._aqty || 0) * (r._basicRate || 0);
+
+            return r;
+        }
+
+        // ==================== AUDIT CHECKS ====================
+        function runAuditChecks(data) {
+            const findings = [];
+            const systemic = {
+                qcBlankCount: 0,
+                indentMissingCount: 0,
+                totalRows: data.length,
+                supplierValues: {},
+                approverValues: {},
+                approverCounts: {},
+                convFactOverbilling: 0,
+                billBeforeGrnCount: 0,
+                gateEntryNumbers: [],
+                itemGodownDivision: {}
+            };
+
+            // Pre-processing for checks 6, 14, 18
+            const supplierItemRates = {};
+            const supplierItemGrns = {};
+            const allSuppliers = new Set();
+            const allTransporters = new Set();
+
+            data.forEach(r => {
+                if (r._supplierName) allSuppliers.add(r._supplierName);
+                if (r._transporter) allTransporters.add(r._transporter);
+
+                // For rate variance check
+                if (r._itemCode && r._supplierName && r._basicRate) {
+                    const key = r._itemCode + '|||' + r._supplierName;
+                    if (!supplierItemRates[key]) supplierItemRates[key] = [];
+                    supplierItemRates[key].push({ rate: r._basicRate, row: r.__rowIndex });
+                }
+
+                // For split order check
+                if (r._supplierName && r._itemCode && r._grnDate && r._orderNo) {
+                    const key = r._supplierName + '|||' + r._itemCode;
+                    if (!supplierItemGrns[key]) supplierItemGrns[key] = [];
+                    supplierItemGrns[key].push({ date: r._grnDate, orderNo: r._orderNo, row: r.__rowIndex });
+                }
+
+                // For godown/division check
+                if (r._itemCode && r._godown && r._division) {
+                    if (!systemic.itemGodownDivision[r._itemCode]) {
+                        systemic.itemGodownDivision[r._itemCode] = { godowns: new Set(), divisions: new Set(), rows: [] };
+                    }
+                    systemic.itemGodownDivision[r._itemCode].godowns.add(r._godown);
+                    systemic.itemGodownDivision[r._itemCode].divisions.add(r._division);
+                    systemic.itemGodownDivision[r._itemCode].rows.push(r.__rowIndex);
+                }
+
+                // Gate entry numbers
+                if (r._gateEntry) {
+                    const num = parseInt(r._gateEntry);
+                    if (!isNaN(num)) systemic.gateEntryNumbers.push({ num, row: r.__rowIndex, raw: r._gateEntry });
+                }
+
+                // Systemic counters
+                if (isBlank(r['QC REMARK'])) systemic.qcBlankCount++;
+                if (isBlank(r['Indent Number'])) systemic.indentMissingCount++;
+
+                // Supplier values
+                if (r._supplierName) {
+                    systemic.supplierValues[r._supplierName] = (systemic.supplierValues[r._supplierName] || 0) + (r._txnValue || 0);
+                }
+
+                // Approver values
+                if (r._approvedBy) {
+                    systemic.approverValues[r._approvedBy] = (systemic.approverValues[r._approvedBy] || 0) + (r._txnValue || 0);
+                    systemic.approverCounts[r._approvedBy] = (systemic.approverCounts[r._approvedBy] || 0) + 1;
+                }
+            });
+
+            // Check 10: Approval concentration (pre-calc)
+            const totalTxnValue = Object.values(systemic.approverValues).reduce((a, b) => a + b, 0);
+            const approverRatios = {};
+            Object.keys(systemic.approverValues).forEach(app => {
+                approverRatios[app] = totalTxnValue > 0 ? (systemic.approverValues[app] / totalTxnValue) : 0;
+            });
+
+            // Check 19: Gate entry duplicates and gaps
+            const gateEntryMap = {};
+            systemic.gateEntryNumbers.forEach(ge => {
+                if (!gateEntryMap[ge.num]) gateEntryMap[ge.num] = [];
+                gateEntryMap[ge.num].push(ge.row);
+            });
+
+            // Process each row
+            data.forEach(r => {
+                // --- TIER 1 ---
+
+                // 1. Party Bill Date < GRN Date
+                if (r._partyBillDate && r._grnDate && r._partyBillDate < r._grnDate) {
+                    findings.push({
+                        tier: 'Tier 1', check: '1. Bill before GRN', row: r.__rowIndex,
+                        reason: `Party Bill Date (${formatDate(r._partyBillDate)}) is before GRN Date (${formatDate(r._grnDate)})`,
+                        severity: 'High', columns: 'Party Bill Date, GRN Date',
+                        values: `Bill: ${formatDate(r._partyBillDate)}, GRN: ${formatDate(r._grnDate)}`
+                    });
+                    systemic.billBeforeGrnCount++;
+                }
+
+                // 2. A/c Voucher Date < GRN Date
+                if (r._voucherDate && r._grnDate && r._voucherDate < r._grnDate) {
+                    findings.push({
+                        tier: 'Tier 1', check: '2. Voucher before GRN', row: r.__rowIndex,
+                        reason: `A/c Voucher Date (${formatDate(r._voucherDate)}) is before GRN Date (${formatDate(r._grnDate)})`,
+                        severity: 'High', columns: 'A/c Voucher Date, GRN Date',
+                        values: `Voucher: ${formatDate(r._voucherDate)}, GRN: ${formatDate(r._grnDate)}`
+                    });
+                }
+
+                // 3. Approved Date < Inspected Date
+                if (r._approvedDate && r._inspectedDate && r._approvedDate < r._inspectedDate) {
+                    findings.push({
+                        tier: 'Tier 1', check: '3. Approval before Inspection', row: r.__rowIndex,
+                        reason: `Approved Date (${formatDate(r._approvedDate)}) is before Inspected Date (${formatDate(r._inspectedDate)})`,
+                        severity: 'High', columns: 'Approved Date, Inspected Date',
+                        values: `Approved: ${formatDate(r._approvedDate)}, Inspected: ${formatDate(r._inspectedDate)}`
+                    });
+                }
+
+                // 4. Inspected Date blank but Accepted Qty > 0
+                if (!r._inspectedDate && r._acceptedQty > 0) {
+                    findings.push({
+                        tier: 'Tier 1', check: '4. Uninspected Acceptance', row: r.__rowIndex,
+                        reason: `Inspected Date is blank but Accepted Quantity is ${r._acceptedQty}`,
+                        severity: 'High', columns: 'Inspected Date, Accepted Quantity',
+                        values: `Accepted Qty: ${r._acceptedQty}`
+                    });
+                }
+
+                // 5. Challan vs Accepted vs Reached Qty mismatch
+                const cq = r._challanQty, aq = r._acceptedQty, rq = r._reachedQty;
+                if (cq !== null && aq !== null && rq !== null) {
+                    if (cq !== aq || aq !== rq || cq !== rq) {
+                        findings.push({
+                            tier: 'Tier 1', check: '5. Quantity Mismatch', row: r.__rowIndex,
+                            reason: `Challan (${cq}), Accepted (${aq}), and Reached (${rq}) quantities differ`,
+                            severity: 'Medium', columns: 'Challan Quantity, Accepted Quantity, Reached Quantity',
+                            values: `Challan: ${cq}, Accepted: ${aq}, Reached: ${rq}`
+                        });
+                    }
+                }
+
+                // 6. Basic Rate inconsistency > 5%
+                if (r._itemCode && r._supplierName && r._basicRate) {
+                    const key = r._itemCode + '|||' + r._supplierName;
+                    const rates = supplierItemRates[key];
+                    if (rates && rates.length > 1) {
+                        const avg = rates.reduce((s, x) => s + x.rate, 0) / rates.length;
+                        const variance = Math.abs(r._basicRate - avg) / avg;
+                        if (variance > 0.05) {
+                            findings.push({
+                                tier: 'Tier 1', check: '6. Rate Variance > 5%', row: r.__rowIndex,
+                                reason: `Basic Rate ₹${r._basicRate} differs from average ₹${avg.toFixed(2)} by ${(variance * 100).toFixed(1)}%`,
+                                severity: 'Medium', columns: 'Item Code, Supplier Name, Basic Rate',
+                                values: `Rate: ${r._basicRate}, Avg: ${avg.toFixed(2)}, Var: ${(variance * 100).toFixed(1)}%`
+                            });
+                        }
+                    }
+                }
+
+                // 7. Late Delivery
+                if (r._grnDate && r._orderDueDate && r._grnDate > r._orderDueDate) {
+                    const daysLate = daysBetween(r._grnDate, r._orderDueDate);
+                    findings.push({
+                        tier: 'Tier 1', check: '7. Late Delivery', row: r.__rowIndex,
+                        reason: `GRN Date (${formatDate(r._grnDate)}) is ${Math.abs(daysLate)} days after Order Due Date (${formatDate(r._orderDueDate)})`,
+                        severity: 'Medium', columns: 'GRN Date, ORDER DUE DATE',
+                        values: `GRN: ${formatDate(r._grnDate)}, Due: ${formatDate(r._orderDueDate)}, Late: ${Math.abs(daysLate)} days`
+                    });
+                }
+
+                // --- TIER 2 ---
+
+                // 8. No Indent Number
+                if (isBlank(r['Indent Number'])) {
+                    findings.push({
+                        tier: 'Tier 2', check: '8. Unauthorized Purchase', row: r.__rowIndex,
+                        reason: 'GRN entry has no Indent Number — potential unauthorized purchase',
+                        severity: 'Medium', columns: 'Indent Number',
+                        values: `GRN: ${r['GRN Number']}`
+                    });
+                }
+
+                // 9. No Order Number
+                if (isBlank(r['Order Number'])) {
+                    findings.push({
+                        tier: 'Tier 2', check: '9. Bypassed Procurement', row: r.__rowIndex,
+                        reason: 'GRN entry has no Order Number — procurement process bypassed',
+                        severity: 'High', columns: 'Order Number',
+                        values: `GRN: ${r['GRN Number']}`
+                    });
+                }
+
+                // 10. Approval concentration (row-level flag if approver exceeds 40%)
+                if (r._approvedBy && approverRatios[r._approvedBy] > 0.40) {
+                    findings.push({
+                        tier: 'Tier 2', check: '10. Approval Concentration', row: r.__rowIndex,
+                        reason: `${r._approvedBy} handles ${(approverRatios[r._approvedBy] * 100).toFixed(1)}% of total transaction value`,
+                        severity: 'High', columns: 'Approved By Name',
+                        values: `Approver: ${r._approvedBy}, Ratio: ${(approverRatios[r._approvedBy] * 100).toFixed(1)}%`
+                    });
+                }
+
+                // 11. QC Blank but Accepted = Challan
+                if (isBlank(r['QC REMARK']) && r._acceptedQty !== null && r._challanQty !== null && r._acceptedQty === r._challanQty && r._challanQty > 0) {
+                    findings.push({
+                        tier: 'Tier 2', check: '11. Rubber Stamp QC', row: r.__rowIndex,
+                        reason: 'QC Remark is blank but Accepted Quantity equals Challan Quantity — potential rubber stamp inspection',
+                        severity: 'Medium', columns: 'QC REMARK, Accepted Quantity, Challan Quantity',
+                        values: `Accepted: ${r._acceptedQty}, Challan: ${r._challanQty}`
+                    });
+                }
+
+                // 12. Batch Number blank
+                if (isBlank(r['Batch Number'])) {
+                    findings.push({
+                        tier: 'Tier 2', check: '12. Traceability Broken', row: r.__rowIndex,
+                        reason: 'Batch Number is blank — traceability compromised',
+                        severity: 'Low', columns: 'Batch Number',
+                        values: `Item: ${r['Item Code']}`
+                    });
+                }
+
+                // 13. Supplier Code/Name mismatch
+                const hasCode = !isBlank(r['Supplier Code']);
+                const hasName = !isBlank(r['Supplier Name']);
+                if ((hasCode && !hasName) || (!hasCode && hasName)) {
+                    findings.push({
+                        tier: 'Tier 2', check: '13. Master Data Breach', row: r.__rowIndex,
+                        reason: `Supplier ${hasCode ? 'Code present but Name missing' : 'Name present but Code missing'}`,
+                        severity: 'Medium', columns: 'Supplier Code, Supplier Name',
+                        values: `Code: ${r['Supplier Code'] || 'BLANK'}, Name: ${r['Supplier Name'] || 'BLANK'}`
+                    });
+                }
+
+                // --- TIER 3 ---
+
+                // 14. Split Orders
+                if (r._supplierName && r._itemCode && r._grnDate && r._orderNo) {
+                    const key = r._supplierName + '|||' + r._itemCode;
+                    const grns = supplierItemGrns[key];
+                    if (grns && grns.length > 1) {
+                        for (const other of grns) {
+                            if (other.row === r.__rowIndex) continue;
+                            const days = Math.abs(daysBetween(r._grnDate, other.date));
+                            if (days <= 7 && other.orderNo !== r._orderNo) {
+                                findings.push({
+                                    tier: 'Tier 3', check: '14. Split Order', row: r.__rowIndex,
+                                    reason: `Same supplier/item with GRN within 7 days but different Order Number (${r._orderNo} vs ${other.orderNo})`,
+                                    severity: 'High', columns: 'Supplier Name, Item Code, GRN Date, Order Number',
+                                    values: `Order: ${r._orderNo}, Other: ${other.orderNo}, Days apart: ${days}`
+                                });
+                                break; // Only flag once per row
+                            }
+                        }
+                    }
+                }
+
+                // 15. Transporter = Supplier
+                if (r._transporter && allSuppliers.has(r._transporter)) {
+                    findings.push({
+                        tier: 'Tier 3', check: '15. Transporter-Supplier Match', row: r.__rowIndex,
+                        reason: `Carrier/Transporter Name "${r._transporter}" matches a Supplier Name in the register`,
+                        severity: 'High', columns: 'Carrier/Transporter Name',
+                        values: `Transporter: ${r._transporter}`
+                    });
+                }
+
+                // 16. Vehicle No vs L.R.No. mismatch
+                const hasVehicle = !isBlank(r['Vehicle No']);
+                const hasTruck = !isBlank(r['TRUCK NO']);
+                const hasLR = !isBlank(r['L.R.No.']);
+                if (hasVehicle && hasTruck && r._vehicleNo !== r._truckNo) {
+                    findings.push({
+                        tier: 'Tier 3', check: '16. Vehicle Mismatch', row: r.__rowIndex,
+                        reason: `Vehicle No (${r['Vehicle No']}) does not match TRUCK NO (${r['TRUCK NO']})`,
+                        severity: 'Medium', columns: 'Vehicle No, TRUCK NO',
+                        values: `Vehicle: ${r['Vehicle No']}, Truck: ${r['TRUCK NO']}`
+                    });
+                }
+                if ((hasVehicle && !hasLR) || (!hasVehicle && hasLR)) {
+                    findings.push({
+                        tier: 'Tier 3', check: '16. LR-Vehicle Mismatch', row: r.__rowIndex,
+                        reason: `One of Vehicle No / L.R.No. is present but the other is blank`,
+                        severity: 'Medium', columns: 'Vehicle No, L.R.No.',
+                        values: `Vehicle: ${r['Vehicle No'] || 'BLANK'}, LR: ${r['L.R.No.'] || 'BLANK'}`
+                    });
+                }
+
+                // 17. Conversion Factor mismatch
+                const cf = r._convFact, ic = r._itemConv, pic = r._poItemConv;
+                if (cf !== null && ic !== null && pic !== null) {
+                    if (cf !== ic || ic !== pic || cf !== pic) {
+                        const maxDiff = Math.max(Math.abs(cf - ic), Math.abs(ic - pic), Math.abs(cf - pic));
+                        const impact = maxDiff * (r._basicRate || 0) * (r._aqty || 0);
+                        systemic.convFactOverbilling += impact;
+                        findings.push({
+                            tier: 'Tier 3', check: '17. Conversion Factor Mismatch', row: r.__rowIndex,
+                            reason: `Conv Fact (${cf}), Item Conversion (${ic}), PO Item Conversion (${pic}) differ. Est. impact: ${formatCurrency(impact)}`,
+                            severity: 'High', columns: 'Conv Fact, Item Conversion, PO Item Conversion, Basic Rate, AQTY',
+                            values: `CF: ${cf}, IC: ${ic}, PIC: ${pic}, Impact: ${formatCurrency(impact)}`
+                        });
+                    }
+                }
+
+                // 18. Godown vs Division mismatch (same item in multiple godowns, one division)
+                if (r._itemCode && systemic.itemGodownDivision[r._itemCode]) {
+                    const info = systemic.itemGodownDivision[r._itemCode];
+                    if (info.godowns.size > 1 && info.divisions.size === 1) {
+                        findings.push({
+                            tier: 'Tier 3', check: '18. Godown-Division Mismatch', row: r.__rowIndex,
+                            reason: `Item ${r._itemCode} received in ${info.godowns.size} godowns but all charged to single division`,
+                            severity: 'Medium', columns: 'Item Code, Godown/Location, Division',
+                            values: `Godowns: ${Array.from(info.godowns).join(', ')}, Division: ${Array.from(info.divisions)[0]}`
+                        });
+                    }
+                }
+
+                // 19. Gate Entry Duplicates
+                if (r._gateEntry) {
+                    const num = parseInt(r._gateEntry);
+                    if (!isNaN(num) && gateEntryMap[num] && gateEntryMap[num].length > 1) {
+                        findings.push({
+                            tier: 'Tier 3', check: '19. Duplicate Gate Entry', row: r.__rowIndex,
+                            reason: `Gate Entry Number ${r._gateEntry} appears ${gateEntryMap[num].length} times in register`,
+                            severity: 'Medium', columns: 'Gate Entry Number',
+                            values: `Gate Entry: ${r._gateEntry}, Rows: ${gateEntryMap[num].join(', ')}`
+                        });
+                    }
+                }
+            });
+
+            // 19. Gate Entry Gaps (systemic finding, not row-specific)
+            const gateNums = systemic.gateEntryNumbers.map(g => g.num).sort((a, b) => a - b);
+            if (gateNums.length > 1) {
+                for (let i = 1; i < gateNums.length; i++) {
+                    if (gateNums[i] - gateNums[i - 1] > 1) {
+                        for (let gap = gateNums[i - 1] + 1; gap < gateNums[i]; gap++) {
+                            findings.push({
+                                tier: 'Tier 3', check: '19. Gate Entry Gap', row: '-',
+                                reason: `Gap in Gate Entry sequence: missing number ${gap} (between ${gateNums[i - 1]} and ${gateNums[i]})`,
+                                severity: 'Medium', columns: 'Gate Entry Number',
+                                values: `Missing: ${gap}`
+                            });
+                        }
+                    }
+                }
+            }
+
+            systemic.totalTxnValue = totalTxnValue;
+            systemic.approverRatios = approverRatios;
+            systemic.gateEntryMap = gateEntryMap;
+            return { findings, systemic };
+        }
+
+        // ==================== RENDERING ====================
+        function renderFindings(findings) {
+            const tiers = { 'Tier 1': [], 'Tier 2': [], 'Tier 3': [], 'all': [] };
+            findings.forEach(f => {
+                if (tiers[f.tier]) tiers[f.tier].push(f);
+                tiers['all'].push(f);
+            });
+
+            ['Tier 1', 'Tier 2', 'Tier 3', 'all'].forEach(tier => {
+                const key = tier === 'Tier 1' ? 'tier1' : tier === 'Tier 2' ? 'tier2' : tier === 'Tier 3' ? 'tier3' : 'all';
+                const tbody = document.querySelector(`#table${key.charAt(0).toUpperCase() + key.slice(1)} tbody`);
+                if (!tbody) return;
+                tbody.innerHTML = '';
+
+                tiers[tier].forEach(f => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="row-num">${f.row}</td>
+                        ${key === 'all' ? `<td>${f.tier}</td>` : ''}
+                        <td><strong>${f.check}</strong></td>
+                        <td class="flag-reason">${f.reason}<br><span class="columns-involved">Columns: ${f.columns}</span></td>
+                        <td><span class="severity severity-${f.severity.toLowerCase()}">${f.severity}</span></td>
+                        <td style="font-size: 0.82rem; color: var(--text-light);">${f.values}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                if (tiers[tier].length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="${key === 'all' ? 6 : 5}" class="empty-state">No findings in this tier</td></tr>`;
+                }
+            });
+        }
+
+        function renderSystemic(data, systemic) {
+            const grid = document.getElementById('observationsGrid');
+
+            // Top 5 suppliers
+            const topSuppliers = Object.entries(systemic.supplierValues)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5);
+
+            let topSuppliersHtml = '<ul class="top-list">';
+            topSuppliers.forEach(([name, val]) => {
+                topSuppliersHtml += `<li><span class="top-name">${name}</span><span class="top-value">${formatCurrency(val)}</span></li>`;
+            });
+            topSuppliersHtml += '</ul>';
+
+            grid.innerHTML = `
+                <div class="obs-card">
+                    <h3>QC Remarks Blank</h3>
+                    <div class="obs-value">${((systemic.qcBlankCount / systemic.totalRows) * 100).toFixed(1)}%</div>
+                    <div class="obs-desc">${systemic.qcBlankCount} of ${systemic.totalRows} GRNs have no QC remark</div>
+                </div>
+                <div class="obs-card">
+                    <h3>Indent Linkage Missing</h3>
+                    <div class="obs-value">${((systemic.indentMissingCount / systemic.totalRows) * 100).toFixed(1)}%</div>
+                    <div class="obs-desc">${systemic.indentMissingCount} of ${systemic.totalRows} entries lack indent linkage</div>
+                </div>
+                <div class="obs-card">
+                    <h3>Top 5 Suppliers by Value</h3>
+                    ${topSuppliersHtml}
+                </div>
+                <div class="obs-card">
+                    <h3>Approval Concentration</h3>
+                    <div class="obs-value">${Object.keys(systemic.approverRatios).filter(a => systemic.approverRatios[a] > 0.4).length}</div>
+                    <div class="obs-desc">Approvers exceeding 40% of total transaction value</div>
+                </div>
+                <div class="obs-card">
+                    <h3>Est. Overbilling (Conv Fact)</h3>
+                    <div class="obs-value">${formatCurrency(systemic.convFactOverbilling)}</div>
+                    <div class="obs-desc">Cumulative financial impact from conversion discrepancies</div>
+                </div>
+                <div class="obs-card">
+                    <h3>Bills Before Goods Received</h3>
+                    <div class="obs-value">${systemic.billBeforeGrnCount}</div>
+                    <div class="obs-desc">Party bills dated before GRN date</div>
+                </div>
+            `;
+
+            // Approval concentration table
+            const tbody = document.querySelector('#tableTier4 tbody');
+            tbody.innerHTML = '';
+            Object.entries(systemic.approverValues)
+                .sort((a, b) => b[1] - a[1])
+                .forEach(([name, val]) => {
+                    const ratio = systemic.totalTxnValue > 0 ? (val / systemic.totalTxnValue) : 0;
+                    const status = ratio > 0.4 ? 
+                        '<span class="severity severity-high">Exceeds 40%</span>' : 
+                        '<span class="severity severity-low">Within limit</span>';
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><strong>${name}</strong></td>
+                        <td>${systemic.approverCounts[name] || 0}</td>
+                        <td>${formatCurrency(val)}</td>
+                        <td>${(ratio * 100).toFixed(1)}%</td>
+                        <td>${status}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+        }
+
+        function updateDashboard(findings, systemic) {
+            const high = findings.filter(f => f.severity === 'High').length;
+            const medium = findings.filter(f => f.severity === 'Medium').length;
+            const low = findings.filter(f => f.severity === 'Low').length;
+
+            document.getElementById('totalRows').textContent = systemic.totalRows.toLocaleString('en-IN');
+            document.getElementById('totalFlags').textContent = findings.length.toLocaleString('en-IN');
+            document.getElementById('highRiskCount').textContent = high.toLocaleString('en-IN');
+            document.getElementById('mediumRiskCount').textContent = medium.toLocaleString('en-IN');
+            document.getElementById('lowRiskCount').textContent = low.toLocaleString('en-IN');
+            document.getElementById('financialImpact').textContent = formatCurrency(systemic.convFactOverbilling);
+
+            document.getElementById('tabTier1').textContent = findings.filter(f => f.tier === 'Tier 1').length;
+            document.getElementById('tabTier2').textContent = findings.filter(f => f.tier === 'Tier 2').length;
+            document.getElementById('tabTier3').textContent = findings.filter(f => f.tier === 'Tier 3').length;
+            document.getElementById('tabTier4').textContent = 'Summary';
+            document.getElementById('tabAll').textContent = findings.length;
+        }
+
+        // ==================== TAB SWITCHING ====================
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // ==================== FILTERING ====================
+        function filterTable(tier) {
+            const input = document.getElementById(`filter${tier.charAt(0).toUpperCase() + tier.slice(1)}`).value.toLowerCase();
+            const severity = document.getElementById(`severity${tier.charAt(0).toUpperCase() + tier.slice(1)}`).value;
+            const tableId = tier === 'all' ? 'tableAll' : `table${tier.charAt(0).toUpperCase() + tier.slice(1)}`;
+            const tbody = document.querySelector(`#${tableId} tbody`);
+            const rows = tbody.querySelectorAll('tr');
+
+            rows.forEach(row => {
+                if (row.querySelector('.empty-state')) return;
+                const text = row.textContent.toLowerCase();
+                const sevCell = row.querySelector('.severity');
+                const sev = sevCell ? sevCell.textContent : '';
+
+                const matchText = text.includes(input);
+                const matchSev = !severity || sev === severity;
+                row.style.display = matchText && matchSev ? '' : 'none';
+            });
+        }
+
+        // ==================== FILE HANDLING ====================
+        const uploadSection = document.getElementById('uploadSection');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, preventDefaults, false);
+        });
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, () => uploadSection.classList.add('dragover'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadSection.addEventListener(eventName, () => uploadSection.classList.remove('dragover'), false);
+        });
+
+        uploadSection.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFiles, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            if (files.length) processFile(files[0]);
+        }
+
+        function handleFiles() {
+            if (this.files.length) processFile(this.files[0]);
+        }
+
+        function processFile(file) {
+            fileName.textContent = file.name;
+            loadingOverlay.classList.add('active');
+            loadingText.textContent = 'Reading file...';
+
+            setTimeout(() => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        let rawData;
+                        if (file.name.toLowerCase().endsWith('.csv')) {
+                            rawData = parseCSV(e.target.result);
+                        } else {
+                            // Excel via SheetJS
+                            if (typeof XLSX === 'undefined') {
+                                alert('Excel parsing library (SheetJS) not loaded. Please ensure you have an internet connection for the first load, or use CSV format.');
+                                loadingOverlay.classList.remove('active');
+                                return;
+                            }
+                            const data = new Uint8Array(e.target.result);
+                            const workbook = XLSX.read(data, { type: 'array' });
+                            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                            rawData = XLSX.utils.sheet_to_json(firstSheet, { defval: '' });
+                        }
+
+                        if (!rawData || rawData.length === 0) {
+                            alert('No data found in file. Please check the file format.');
+                            loadingOverlay.classList.remove('active');
+                            return;
+                        }
+
+                        loadingText.textContent = `Normalizing ${rawData.length} rows...`;
+
+                        setTimeout(() => {
+                            auditData = rawData.map((row, idx) => normalizeRow(row, idx));
+
+                            loadingText.textContent = 'Running 25 audit checks...';
+
+                            setTimeout(() => {
+                                const result = runAuditChecks(auditData);
+                                allFindings = result.findings;
+                                systemicData = result.systemic;
+
+                                renderFindings(allFindings);
+                                renderSystemic(auditData, systemicData);
+                                updateDashboard(allFindings, systemicData);
+
+                                document.getElementById('uploadSection').style.display = 'none';
+                                document.getElementById('dashboard').style.display = 'block';
+                                loadingOverlay.classList.remove('active');
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }, 100);
+                        }, 100);
+                    } catch (err) {
+                        console.error(err);
+                        alert('Error processing file: ' + err.message);
+                        loadingOverlay.classList.remove('active');
+                    }
+                };
+
+                if (file.name.toLowerCase().endsWith('.csv')) {
+                    reader.readAsText(file);
+                } else {
+                    reader.readAsArrayBuffer(file);
+                }
+            }, 100);
+        }
+
+        // ==================== EXPORT ====================
+        function exportReport() {
+            if (!allFindings.length) {
+                alert('No findings to export.');
+                return;
+            }
+
+            // Prepare findings sheet
+            const findingsSheet = allFindings.map(f => ({
+                'Row Number': f.row,
+                'Tier': f.tier,
+                'Audit Check': f.check,
+                'Flag Reason': f.reason,
+                'Severity': f.severity,
+                'Columns Involved': f.columns,
+                'Key Values': f.values
+            }));
+
+            // Prepare systemic observations
+            const systemicSheet = [
+                { 'Metric': 'Total Records', 'Value': systemicData.totalRows },
+                { 'Metric': 'Total Flags', 'Value': allFindings.length },
+                { 'Metric': 'High Risk Flags', 'Value': allFindings.filter(f => f.severity === 'High').length },
+                { 'Metric': 'Medium Risk Flags', 'Value': allFindings.filter(f => f.severity === 'Medium').length },
+                { 'Metric': 'Low Risk Flags', 'Value': allFindings.filter(f => f.severity === 'Low').length },
+                { 'Metric': 'QC Remarks Blank (%)', 'Value': ((systemicData.qcBlankCount / systemicData.totalRows) * 100).toFixed(2) + '%' },
+                { 'Metric': 'Indent Missing (%)', 'Value': ((systemicData.indentMissingCount / systemicData.totalRows) * 100).toFixed(2) + '%' },
+                { 'Metric': 'Est. Overbilling (Conv Fact)', 'Value': systemicData.convFactOverbilling },
+                { 'Metric': 'Bills Before GRN', 'Value': systemicData.billBeforeGrnCount }
+            ];
+
+            // Top suppliers
+            const topSuppliers = Object.entries(systemicData.supplierValues)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 5)
+                .map(([name, val], i) => ({
+                    'Rank': i + 1,
+                    'Supplier Name': name,
+                    'Transaction Value': val
+                }));
+
+            // Approver concentration
+            const approverSheet = Object.entries(systemicData.approverValues)
+                .sort((a, b) => b[1] - a[1])
+                .map(([name, val]) => ({
+                    'Approver': name,
+                    'Transaction Count': systemicData.approverCounts[name] || 0,
+                    'Total Value': val,
+                    '% of Total': systemicData.totalTxnValue > 0 ? ((val / systemicData.totalTxnValue) * 100).toFixed(2) + '%' : '0%',
+                    'Status': (val / (systemicData.totalTxnValue || 1)) > 0.4 ? 'EXCEEDS 40%' : 'Within limit'
+                }));
+
+            if (typeof XLSX === 'undefined') {
+                // Fallback to CSV
+                let csv = 'Row Number,Tier,Audit Check,Flag Reason,Severity,Columns Involved,Key Values\n';
+                findingsSheet.forEach(f => {
+                    csv += `"${f['Row Number']}","${f['Tier']}","${f['Audit Check']}","${f['Flag Reason']}","${f['Severity']}","${f['Columns Involved']}","${f['Key Values']}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = 'Audit_Findings_' + new Date().toISOString().slice(0, 10) + '.csv';
+                link.click();
+                return;
+            }
+
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(findingsSheet), 'All Findings');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(systemicSheet), 'Systemic Summary');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(topSuppliers), 'Top 5 Suppliers');
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(approverSheet), 'Approver Concentration');
+
+            XLSX.writeFile(wb, 'Purchase_Register_Audit_Report_' + new Date().toISOString().slice(0, 10) + '.xlsx');
+        }
+    </script>
+</body>
+</html>

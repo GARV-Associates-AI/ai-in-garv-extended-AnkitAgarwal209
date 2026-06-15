@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Register Audit Tool — Installation & User Manual</title>
+    <style>
+        :root {
+            --primary: #1e3a5f;
+            --primary-light: #2c5282;
+            --accent: #c53030;
+            --amber: #d69e2e;
+            --green: #38a169;
+            --bg: #f7fafc;
+            --card-bg: #ffffff;
+            --text: #2d3748;
+            --text-light: #718096;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        /* Header */
+        .manual-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+            color: white;
+            padding: 50px 0 40px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .manual-header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 10px; }
+        .manual-header .subtitle { font-size: 1.1rem; opacity: 0.9; }
+        .manual-header .meta { margin-top: 20px; font-size: 0.85rem; opacity: 0.8; }
+        .meta span { display: inline-block; margin: 0 12px; }
+
+        /* Navigation */
+        .toc {
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+        }
+        .toc h2 { color: var(--primary); margin-bottom: 20px; font-size: 1.3rem; }
+        .toc ul { list-style: none; columns: 2; }
+        .toc li { margin-bottom: 10px; break-inside: avoid; }
+        .toc a { color: var(--primary-light); text-decoration: none; font-weight: 500; }
+        .toc a:hover { text-decoration: underline; }
+        .toc .num { display: inline-block; width: 28px; height: 28px; background: var(--primary); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 0.8rem; margin-right: 10px; font-weight: 700; }
+
+        /* Sections */
+        .section {
+            background: var(--card-bg);
+            padding: 35px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+        }
+        .section h2 { color: var(--primary); font-size: 1.5rem; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 3px solid var(--border); }
+        .section h3 { color: var(--primary-light); font-size: 1.15rem; margin: 25px 0 12px; }
+        .section h4 { color: var(--text); font-size: 1rem; margin: 20px 0 10px; font-weight: 600; }
+
+        /* Lists */
+        ul, ol { margin-left: 20px; margin-bottom: 15px; }
+        li { margin-bottom: 8px; }
+
+        /* Tables */
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9rem; }
+        th { background: var(--primary); color: white; padding: 12px; text-align: left; font-weight: 600; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); }
+        tr:nth-child(even) { background: #f8fafc; }
+
+        /* Code/Files */
+        .file-box {
+            background: #edf2f7;
+            border-left: 4px solid var(--primary);
+            padding: 15px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9rem;
+        }
+        .code {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+        .highlight { background: #fffaf0; border-left: 4px solid var(--amber); padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+        .warning { background: #fff5f5; border-left: 4px solid var(--accent); padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+        .success { background: #f0fff4; border-left: 4px solid var(--green); padding: 15px 20px; margin: 15px 0; border-radius: 0 8px 8px 0; }
+
+        /* Steps */
+        .step { display: flex; gap: 20px; margin-bottom: 25px; }
+        .step-num {
+            flex-shrink: 0;
+            width: 40px; height: 40px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.1rem;
+        }
+        .step-content { flex: 1; }
+        .step-content h4 { margin-top: 0; }
+
+        /* Badges */
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; margin-right: 5px; }
+        .badge-red { background: #fed7d7; color: #c53030; }
+        .badge-amber { background: #fefcbf; color: #d69e2e; }
+        .badge-green { background: #c6f6d5; color: #276749; }
+        .badge-blue { background: #bee3f8; color: #2c5282; }
+
+        /* Footer */
+        .manual-footer {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            border-top: 1px solid var(--border);
+            margin-top: 40px;
+        }
+
+        /* Print */
+        @media print {
+            .toc { display: none; }
+            .section { break-inside: avoid; page-break-inside: avoid; }
+            h2 { page-break-after: avoid; }
+        }
+
+        @media (max-width: 768px) {
+            .toc ul { columns: 1; }
+            .step { flex-direction: column; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="manual-header">
+        <div class="container">
+            <h1>📋 Purchase Register Audit Tool</h1>
+            <div class="subtitle">Installation & User Manual</div>
+            <div class="meta">
+                <span>🔒 Fully Offline</span>
+                <span>📊 Client-Side Processing</span>
+                <span>🏢 Internal Audit Use</span>
+                <span>🇮🇳 Indian Pvt Ltd Compliant</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="toc">
+            <h2>📑 Table of Contents</h2>
+            <ul>
+                <li><span class="num">1</span><a href="#overview">Overview & Security</a></li>
+                <li><span class="num">2</span><a href="#requirements">System Requirements</a></li>
+                <li><span class="num">3</span><a href="#installation">Installation Methods</a></li>
+                <li><span class="num">4</span><a href="#file-structure">File Structure</a></li>
+                <li><span class="num">5</span><a href="#first-run">First Run & Setup</a></li>
+                <li><span class="num">6</span><a href="#usage">Step-by-Step Usage Guide</a></li>
+                <li><span class="num">7</span><a href="#understanding">Understanding Audit Results</a></li>
+                <li><span class="num">8</span><a href="#tiers">Audit Tiers Explained</a></li>
+                <li><span class="num">9</span><a href="#export">Exporting Reports</a></li>
+                <li><span class="num">10</span><a href="#transfer">Transferring to New Laptop</a></li>
+                <li><span class="num">11</span><a href="#troubleshooting">Troubleshooting</a></li>
+                <li><span class="num">12</span><a href="#security">Data Security Protocols</a></li>
+            </ul>
+        </div>
+
+        <div class="section" id="overview">
+            <h2>1. Overview & Security</h2>
+            <p>The <strong>Purchase Register Audit Tool</strong> is a browser-based application designed for Internal Auditors of Indian Private Limited companies. It performs automated compliance checks on purchase register data without requiring any server, internet connection, or data upload.</p>
+
+            <div class="success">
+                <strong>✓ Key Security Feature:</strong> All data processing occurs entirely within your browser's memory. No purchase data, supplier names, rates, or quantities are transmitted over the internet or stored on any remote server. This makes the tool compliant with strict internal audit confidentiality requirements.
+            </div>
+
+            <h3>What This Tool Does</h3>
+            <ul>
+                <li>Accepts Excel (.xlsx) or CSV (.csv) purchase register files</li>
+                <li>Runs <strong>25 mandatory audit checks</strong> across 4 tiers</li>
+                <li>Detects date sequence violations, quantity mismatches, process control failures, and fraud indicators</li>
+                <li>Calculates estimated financial impact of discrepancies</li>
+                <li>Generates a professional, filterable dashboard with severity-coded findings</li>
+                <li>Exports complete audit reports as formatted Excel files</li>
+            </ul>
+
+            <h3>What You Need</h3>
+            <ul>
+                <li>A Windows/Mac/Linux laptop with any modern web browser (Chrome, Edge, Firefox, Safari)</li>
+                <li>The audit tool HTML file</li>
+                <li>(Optional) The SheetJS library file for Excel support in offline mode</li>
+                <li>Your company's purchase register data in Excel or CSV format</li>
+            </ul>
+        </div>
+
+        <div class="section" id="requirements">
+            <h2>2. System Requirements</h2>
+            <table>
+                <tr><th>Component</th><th>Minimum Requirement</th><th>Recommended</th></tr>
+                <tr><td>Operating System</td><td>Windows 7 / macOS 10.12 / Linux</td><td>Windows 10/11 / macOS 12+</td></tr>
+                <tr><td>Web Browser</td><td>Chrome 80+, Edge 80+, Firefox 75+</td><td>Latest Chrome or Edge</td></tr>
+                <tr><td>RAM</td><td>4 GB</td><td>8 GB+ (for large registers >50,000 rows)</td></tr>
+                <tr><td>Storage</td><td>10 MB free space</td><td>50 MB free space</td></tr>
+                <tr><td>Internet</td><td>Required only for first-time SheetJS download</td><td>Not required for operation</td></tr>
+                <tr><td>Excel Support</td><td>CSV always works offline</td><td>.xlsx works with SheetJS library</td></tr>
+            </table>
+
+            <div class="highlight">
+                <strong>💡 Tip:</strong> For CSV files, the tool works 100% offline immediately with zero dependencies. For Excel (.xlsx) files, you need the SheetJS library file (see Installation section).
+            </div>
+        </div>
+
+        <div class="section" id="installation">
+            <h2>3. Installation Methods</h2>
+            <p>Choose the method that best fits your organization's IT policies and offline requirements.</p>
+
+            <h3>Method A: Online-First Setup (Easiest)</h3>
+            <p><span class="badge badge-blue">Internet Required Once</span></p>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Download the Audit Tool</h4>
+                    <p>Save the <code>PurchaseRegisterAuditTool.html</code> file to a folder on your computer, e.g., <code>C:\AuditTools\</code> or <code>Documents/Audit/</code>.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>First Launch with Internet</h4>
+                    <p>Double-click the HTML file to open it in your browser <strong>while connected to the internet</strong>. The tool will automatically load the SheetJS library from CDN for Excel parsing support.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>Verify It Works</h4>
+                    <p>Upload one of the sample CSV files to confirm the dashboard loads. Once verified, the tool will continue to work offline for CSV files indefinitely.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h4>For Permanent Offline Excel Support</h4>
+                    <p>Download the SheetJS library file from:<br>
+                    <code>https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js</code><br>
+                    Save it in the <strong>same folder</strong> as the HTML file, then edit line ~12 of the HTML to change:<br>
+                    <code>&lt;script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"&gt;&lt;/script&gt;</code><br>
+                    to:<br>
+                    <code>&lt;script src="xlsx.full.min.js"&gt;&lt;/script&gt;</code></p>
+                </div>
+            </div>
+
+            <h3>Method B: Fully Offline Setup (Air-Gapped Systems)</h3>
+            <p><span class="badge badge-green">No Internet Ever</span></p>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Prepare on an Internet-Connected Machine</h4>
+                    <p>On a machine with internet access, download both files:</p>
+                    <div class="file-box">
+                        PurchaseRegisterAuditTool.html<br>
+                        xlsx.full.min.js  (from https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js)
+                    </div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Modify the HTML for Local SheetJS</h4>
+                    <p>Open <code>PurchaseRegisterAuditTool.html</code> in any text editor (Notepad, VS Code, TextEdit). Find this line near the top:</p>
+                    <div class="code">&lt;script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"&gt;&lt;/script&gt;</div>
+                    <p>Replace it with:</p>
+                    <div class="code">&lt;script src="xlsx.full.min.js"&gt;&lt;/script&gt;</div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>Transfer to Air-Gapped Laptop</h4>
+                    <p>Copy both files to a USB drive. Transfer them to the target laptop's folder (e.g., <code>C:\AuditTools\</code>). Both files must remain in the same folder.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h4>Verify & Test</h4>
+                    <p>Double-click the HTML file on the air-gapped machine. Test with a CSV file first, then an Excel file to confirm SheetJS is loading from the local copy.</p>
+                </div>
+            </div>
+
+            <h3>Method C: USB Portable Installation</h3>
+            <p><span class="badge badge-amber">Portable</span></p>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Create Portable Audit Kit</h4>
+                    <p>Create a folder on your USB drive:</p>
+                    <div class="file-box">
+                        E:\AUDIT_KIT\<br>
+                        &nbsp;&nbsp;├── PurchaseRegisterAuditTool.html<br>
+                        &nbsp;&nbsp;├── xlsx.full.min.js<br>
+                        &nbsp;&nbsp;├── Sample_01_Clean_Data.csv<br>
+                        &nbsp;&nbsp;├── Sample_02_Date_Sequence_Issues.csv<br>
+                        &nbsp;&nbsp;└── ... (other sample files)
+                    </div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Use on Any Laptop</h4>
+                    <p>Plug the USB into any laptop. Open the HTML file directly from the USB drive. No installation on the host machine is required. All audit data remains on the USB or is processed in memory only.</p>
+                </div>
+            </div>
+            <div class="warning">
+                <strong>⚠️ USB Security Warning:</strong> Ensure the USB drive is encrypted or password-protected if it will contain actual company purchase register data. The tool itself does not store data, but downloaded reports will be saved to the laptop's Downloads folder unless configured otherwise.
+            </div>
+        </div>
+
+        <div class="section" id="file-structure">
+            <h2>4. File Structure</h2>
+            <p>After complete setup, your audit folder should look like this:</p>
+            <div class="file-box">
+                C:\AUDIT_TOOLS\<br>
+                &nbsp;&nbsp;├── PurchaseRegisterAuditTool.html          ← Main application<br>
+                &nbsp;&nbsp;├── xlsx.full.min.js                        ← Excel parser (for offline .xlsx)<br>
+                &nbsp;&nbsp;├── Audit_Manual.html                       ← This manual<br>
+                &nbsp;&nbsp;└── SAMPLES\<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Sample_01_Clean_Data.csv<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Sample_02_Date_Sequence_Issues.csv<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Sample_03_Quantity_QC_Issues.csv<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Sample_04_Rate_Variance_Late.csv<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Sample_05_Process_Control_Failures.csv<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Sample_06_Fraud_Indicators.csv<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── Sample_07_Approval_Concentration.csv<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;└── Sample_08_Full_Mixed_Audit.csv
+            </div>
+        </div>
+
+        <div class="section" id="first-run">
+            <h2>5. First Run & Setup</h2>
+
+            <h3>Launching the Tool</h3>
+            <ol>
+                <li>Navigate to the folder containing <code>PurchaseRegisterAuditTool.html</code></li>
+                <li>Double-click the file. It will open in your default web browser.</li>
+                <li>You will see the audit dashboard with a file upload area.</li>
+            </ol>
+
+            <div class="highlight">
+                <strong>💡 Note:</strong> If double-clicking opens the file in a text editor instead of a browser, right-click the file → <strong>Open With</strong> → Select <strong>Google Chrome</strong>, <strong>Microsoft Edge</strong>, or <strong>Mozilla Firefox</strong>.
+            </div>
+
+            <h3>Browser Security Prompts</h3>
+            <p>Some browsers may show a security notice when opening local HTML files. This is normal. The tool does not access the internet or your file system beyond the file you explicitly upload. You may safely proceed.</p>
+
+            <h3>Testing with Sample Data</h3>
+            <p>Before using with live company data, test with the provided sample files:</p>
+            <ol>
+                <li>Click <strong>Select File</strong> or drag-and-drop <code>Sample_01_Clean_Data.csv</code></li>
+                <li>The dashboard should appear with <strong>0 flags</strong> (all green metrics)</li>
+                <li>Test <code>Sample_08_Full_Mixed_Audit.csv</code> to see all tiers populated with findings</li>
+            </ol>
+        </div>
+
+        <div class="section" id="usage">
+            <h2>6. Step-by-Step Usage Guide</h2>
+
+            <h3>Step 1: Prepare Your Purchase Register</h3>
+            <p>Ensure your Excel or CSV file contains the following columns (exact names preferred, but the tool matches case-insensitively):</p>
+            <table>
+                <tr><th>Column Name</th><th>Data Type</th><th>Example</th></tr>
+                <tr><td>Entry Date</td><td>Date (DD/MM/YYYY)</td><td>15/04/2025</td></tr>
+                <tr><td>Supplier Name</td><td>Text</td><td>ABC Suppliers Pvt Ltd</td></tr>
+                <tr><td>Supplier Code</td><td>Text</td><td>SUP001</td></tr>
+                <tr><td>Indent Number</td><td>Text</td><td>IND20250123</td></tr>
+                <tr><td>Order Number</td><td>Text</td><td>PO20250045</td></tr>
+                <tr><td>Item Code</td><td>Text</td><td>ITM001</td></tr>
+                <tr><td>GRN Date</td><td>Date</td><td>15/04/2025</td></tr>
+                <tr><td>Inspected Date</td><td>Date</td><td>16/04/2025</td></tr>
+                <tr><td>Approved Date</td><td>Date</td><td>17/04/2025</td></tr>
+                <tr><td>Party Bill Date</td><td>Date</td><td>18/04/2025</td></tr>
+                <tr><td>A/c Voucher Date</td><td>Date</td><td>19/04/2025</td></tr>
+                <tr><td>Challan Quantity</td><td>Number</td><td>100</td></tr>
+                <tr><td>Accepted Quantity</td><td>Number</td><td>100</td></tr>
+                <tr><td>Reached Quantity</td><td>Number</td><td>100</td></tr>
+                <tr><td>Basic Rate</td><td>Number</td><td>45.50</td></tr>
+                <tr><td>AQTY</td><td>Number</td><td>100</td></tr>
+                <tr><td>Conv Fact</td><td>Number</td><td>1</td></tr>
+                <tr><td>Item Conversion</td><td>Number</td><td>1</td></tr>
+                <tr><td>PO Item Conversion</td><td>Number</td><td>1</td></tr>
+                <tr><td>Approved By Name</td><td>Text</td><td>Ramesh Kumar</td></tr>
+                <tr><td>QC REMARK</td><td>Text</td><td>Approved - Quality OK</td></tr>
+                <tr><td>Batch Number</td><td>Text</td><td>BCH001</td></tr>
+                <tr><td>Gate Entry Number</td><td>Text/Number</td><td>1001</td></tr>
+                <tr><td>Carrier/Transporter Name</td><td>Text</td><td>Fast Transport</td></tr>
+                <tr><td>Vehicle No</td><td>Text</td><td>MH14AB1234</td></tr>
+                <tr><td>TRUCK NO</td><td>Text</td><td>MH12XY5678</td></tr>
+                <tr><td>L.R.No.</td><td>Text</td><td>LR5001</td></tr>
+                <tr><td>ORDER DUE DATE</td><td>Date</td><td>20/04/2025</td></tr>
+                <tr><td>Division</td><td>Text</td><td>Construction</td></tr>
+                <tr><td>Godown/Location</td><td>Text</td><td>Godown-A</td></tr>
+            </table>
+
+            <div class="highlight">
+                <strong>💡 Date Formats Supported:</strong> DD/MM/YYYY, DD-MM-YYYY, YYYY-MM-DD, and native Excel serial dates. The tool auto-detects the format.
+            </div>
+
+            <h3>Step 2: Upload the File</h3>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Click Select File or Drag & Drop</h4>
+                    <p>On the audit tool homepage, click the <strong>Select File</strong> button and choose your <code>.xlsx</code> or <code>.csv</code> file. Alternatively, drag the file from File Explorer and drop it onto the upload area.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Wait for Processing</h4>
+                    <p>A loading spinner will appear while the tool:</p>
+                    <ul>
+                        <li>Parses the file (Excel via SheetJS, CSV via native parser)</li>
+                        <li>Normalizes dates and numbers</li>
+                        <li>Runs all 25 audit checks across 4 tiers</li>
+                        <li>Calculates financial impacts and systemic observations</li>
+                    </ul>
+                    <p>Processing time: ~1-3 seconds for 1,000 rows; ~10-20 seconds for 50,000 rows.</p>
+                </div>
+            </div>
+
+            <h3>Step 3: Review the Dashboard</h3>
+            <p>After processing, the dashboard displays six metric cards:</p>
+            <ul>
+                <li><strong>Total Records:</strong> Number of rows processed</li>
+                <li><strong>Total Flags:</strong> Sum of all findings across all tiers</li>
+                <li><strong>High Risk:</strong> Findings requiring immediate auditor action</li>
+                <li><strong>Medium Risk:</strong> Findings requiring review and documentation</li>
+                <li><strong>Low Risk:</strong> Minor observations for file note</li>
+                <li><strong>Est. Financial Impact:</strong> Cumulative overbilling from conversion factor discrepancies</li>
+            </ul>
+
+            <h3>Step 4: Navigate Tier Tabs</h3>
+            <p>Click the tier tabs to view categorized findings:</p>
+            <ul>
+                <li><strong>Tier 1:</strong> Date Sequence & Quantity Reconciliation</li>
+                <li><strong>Tier 2:</strong> Process Control failures</li>
+                <li><strong>Tier 3:</strong> Fraud Indicators</li>
+                <li><strong>Tier 4:</strong> Systemic Observations (summary + approver concentration table)</li>
+                <li><strong>All Findings:</strong> Combined view with tier labels</li>
+            </ul>
+
+            <h3>Step 5: Filter & Investigate</h3>
+            <p>Each tier table has two filters:</p>
+            <ul>
+                <li><strong>Text Filter:</strong> Type keywords to filter by supplier name, item code, flag reason, etc.</li>
+                <li><strong>Severity Filter:</strong> Dropdown to show only High, Medium, or Low risk findings</li>
+            </ul>
+            <p>Each flagged row shows: Row Number, Audit Check Name, Flag Reason, Severity badge, and Key Values involved.</p>
+        </div>
+
+        <div class="section" id="understanding">
+            <h2>7. Understanding Audit Results</h2>
+
+            <h3>Severity Color Coding</h3>
+            <table>
+                <tr><th>Badge</th><th>Meaning</th><th>Auditor Action</th></tr>
+                <tr><td><span class="badge badge-red">HIGH</span></td><td>Critical violation or fraud indicator</td><td>Immediate investigation, document evidence, escalate to management</td></tr>
+                <tr><td><span class="badge badge-amber">MEDIUM</span></td><td>Process control failure or compliance gap</td><td>Review supporting documents, verify approvals, note in audit working papers</td></tr>
+                <tr><td><span class="badge badge-green">LOW</span></td><td>Minor observation or data quality issue</td><td>Note for process improvement, follow up in next audit cycle</td></tr>
+            </table>
+
+            <h3>How to Read a Flagged Row</h3>
+            <div class="file-box">
+                Row: 42 | Check: 1. Bill before GRN<br>
+                Reason: Party Bill Date (12/04/2025) is before GRN Date (15/04/2025)<br>
+                Severity: <span class="badge badge-red">HIGH</span><br>
+                Columns: Party Bill Date, GRN Date<br>
+                Values: Bill: 12/04/2025, GRN: 15/04/2025
+            </div>
+            <p><strong>Interpretation:</strong> The supplier raised a bill before goods were actually received. This could indicate:</p>
+            <ul>
+                <li>Back-dated GRN entry (process failure)</li>
+                <li>Advance billing without goods receipt (cash flow risk)</li>
+                <li>Fraudulent early payment pressure</li>
+            </ul>
+
+            <h3>Financial Impact Calculation</h3>
+            <p>The <strong>Est. Financial Impact</strong> card shows the cumulative overbilling detected from Conversion Factor discrepancies (Check 17). The formula used is:</p>
+            <div class="code">
+                Impact = |Max Difference among Conv Fact, Item Conversion, PO Item Conversion| × Basic Rate × AQTY
+            </div>
+            <p>This is an <em>estimated</em> figure for audit scoping. Exact overbilling requires verification against actual invoices and UOM master data.</p>
+        </div>
+
+        <div class="section" id="tiers">
+            <h2>8. Audit Tiers Explained</h2>
+
+            <h3>Tier 1 — Date Sequence & Quantity Reconciliation</h3>
+            <p>Focuses on chronological logic and physical quantity matching. These are foundational checks that verify the basic integrity of the purchase-to-pay cycle.</p>
+            <table>
+                <tr><th>Check</th><th>What It Detects</th><th>Typical Root Cause</th></tr>
+                <tr><td>1. Bill before GRN</td><td>Invoice dated before goods receipt</td><td>Back-dated GRN, advance billing</td></tr>
+                <tr><td>2. Voucher before GRN</td><td>Accounting entry before physical receipt</td><td>Pre-accounting, system backdating</td></tr>
+                <tr><td>3. Approval before Inspection</td><td>Quality approval before QC check</td><td>Process bypass, rubber-stamp workflow</td></tr>
+                <tr><td>4. Uninspected Acceptance</td><td>Goods accepted without inspection date</td><td>Missing QC step, undocumented waiver</td></tr>
+                <tr><td>5. Quantity Mismatch</td><td>Challan ≠ Accepted ≠ Reached</td><td>Short receipt, damage, pilferage</td></tr>
+                <tr><td>6. Rate Variance >5%</td><td>Same item/supplier with fluctuating rates</td><td>Price manipulation, wrong item coded</td></tr>
+                <tr><td>7. Late Delivery</td><td>GRN after Order Due Date</td><td>Supplier delay, poor planning</td></tr>
+            </table>
+
+            <h3>Tier 2 — Process Control</h3>
+            <p>Validates whether procurement controls (indenting, ordering, approval limits, QC) were followed.</p>
+            <table>
+                <tr><th>Check</th><th>What It Detects</th><th>Typical Root Cause</th></tr>
+                <tr><td>8. No Indent Number</td><td>GRN without purchase requisition</td><td>Unauthorized purchase, emergency buy</td></tr>
+                <tr><td>9. No Order Number</td><td>GRN without purchase order</td><td>Procurement bypass, verbal orders</td></tr>
+                <tr><td>10. Approval Concentration</td><td>One person approves >40% of value</td><td>Segregation of duties failure</td></tr>
+                <tr><td>11. Rubber Stamp QC</td><td>Blank QC remark but full acceptance</td><td>Fake QC, inspector negligence</td></tr>
+                <tr><td>12. Blank Batch Number</td><td>Missing batch traceability</td><td>Data entry skip, non-batch item</td></tr>
+                <tr><td>13. Master Data Breach</td><td>Supplier code/name mismatch</td><td>Incomplete master, data corruption</td></tr>
+            </table>
+
+            <h3>Tier 3 — Fraud Indicators</h3>
+            <p>Pattern-based checks that identify behaviors commonly associated with procurement fraud.</p>
+            <table>
+                <tr><th>Check</th><th>What It Detects</th><th>Typical Root Cause</th></tr>
+                <tr><td>14. Split Orders</td><td>Same supplier/item within 7 days, different POs</td><td>Order splitting to avoid approval limits</td></tr>
+                <tr><td>15. Transporter=Supplier</td><td>Carrier name matches a supplier name</td><td>Related-party transport, inflated freight</td></tr>
+                <tr><td>16. Vehicle/LR Mismatch</td><td>Inconsistent vehicle identification</td><td>Diversion of goods, ghost deliveries</td></tr>
+                <tr><td>17. Conversion Factor Mismatch</td><td>UOM conversion factors differ</td><td>Overbilling through UOM manipulation</td></tr>
+                <tr><td>18. Godown-Division Mismatch</td><td>Same item in multiple godowns, one division</td><td>Cost misallocation, inventory fraud</td></tr>
+                <tr><td>19. Gate Entry Gaps/Duplicates</td><td>Missing or duplicate gate entry numbers</td><td>Missing entries, duplicate billing</td></tr>
+            </table>
+
+            <h3>Tier 4 — Systemic Observations</h3>
+            <p>Aggregate statistics that reveal organizational patterns rather than individual transaction issues.</p>
+            <ul>
+                <li><strong>% Blank QC Remarks:</strong> Indicates QC culture weakness</li>
+                <li><strong>% Missing Indent Linkage:</strong> Shows procurement discipline</li>
+                <li><strong>Top 5 Suppliers by Value:</strong> Concentration risk analysis</li>
+                <li><strong>Approval Concentration Ratio:</strong> Segregation of duties health</li>
+                <li><strong>Total Overbilling Estimate:</strong> Financial quantification of Check 17</li>
+                <li><strong>Bills Before GRN Count:</strong> Frequency of timing violations</li>
+            </ul>
+        </div>
+
+        <div class="section" id="export">
+            <h2>9. Exporting Reports</h2>
+
+            <h3>Generating the Audit Report</h3>
+            <ol>
+                <li>After processing, click the <strong>Export Full Report (Excel)</strong> button on the dashboard.</li>
+                <li>The tool generates a multi-sheet Excel workbook containing:</li>
+            </ol>
+
+            <table>
+                <tr><th>Sheet Name</th><th>Contents</th></tr>
+                <tr><td>All Findings</td><td>Every flagged row with tier, check, reason, severity, and values</td></tr>
+                <tr><td>Systemic Summary</td><td>Aggregate metrics (QC blank %, indent missing %, overbilling, etc.)</td></tr>
+                <tr><td>Top 5 Suppliers</td><td>Ranked list of suppliers by transaction value</td></tr>
+                <tr><td>Approver Concentration</td><td>Each approver's count, value, percentage, and limit status</td></tr>
+            </table>
+
+            <h3>Export Format Behavior</h3>
+            <div class="highlight">
+                <strong>With SheetJS (online or offline):</strong> Exports as a proper <code>.xlsx</code> file with multiple formatted sheets.
+            </div>
+            <div class="highlight">
+                <strong>Without SheetJS (CSV-only mode):</strong> Falls back to a single <code>.csv</code> file containing all findings. Systemic summaries must be copied manually from the dashboard.
+            </div>
+
+            <h3>Report Naming</h3>
+            <p>Exported files are automatically named:</p>
+            <div class="file-box">Purchase_Register_Audit_Report_YYYY-MM-DD.xlsx</div>
+            <p>Where the date is the current system date. This ensures version control when multiple audits are performed.</p>
+        </div>
+
+        <div class="section" id="transfer">
+            <h2>10. Transferring to a New Laptop</h2>
+            <p>When you receive a new laptop or need to share the tool with a colleague, follow this secure transfer protocol.</p>
+
+            <h3>Method 1: Direct File Copy (Recommended)</h3>
+            <div class="step">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h4>Locate All Files on Old Laptop</h4>
+                    <p>Find the folder containing:</p>
+                    <div class="file-box">
+                        PurchaseRegisterAuditTool.html<br>
+                        xlsx.full.min.js (if using offline Excel)<br>
+                        Any exported audit reports you wish to keep
+                    </div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h4>Copy to Transfer Media</h4>
+                    <p>Copy the entire folder to:</p>
+                    <ul>
+                        <li>USB flash drive (encrypted preferred)</li>
+                        <li>Shared network drive (if permitted by IT policy)</li>
+                        <li>Email attachment (only for the HTML/JS files, never for audit data)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h4>Paste on New Laptop</h4>
+                    <p>Create the same folder structure on the new machine, e.g., <code>C:\AUDIT_TOOLS\</code>. Paste all files.</p>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h4>Verify the HTML Path</h4>
+                    <p>If you moved the files to a different folder path, ensure the SheetJS reference in the HTML is correct. If both files are in the <strong>same folder</strong>, this line should work:</p>
+                    <div class="code">&lt;script src="xlsx.full.min.js"&gt;&lt;/script&gt;</div>
+                </div>
+            </div>
+            <div class="step">
+                <div class="step-num">5</div>
+                <div class="step-content">
+                    <h4>Test Run</h4>
+                    <p>Double-click the HTML file and run <code>Sample_01_Clean_Data.csv</code> to confirm everything works before using live data.</p>
+                </div>
+            </div>
+
+            <h3>Method 2: Fresh Download on New Laptop</h3>
+            <p>If you don't have the files or prefer a clean setup:</p>
+            <ol>
+                <li>On the new laptop (with internet), download the HTML file and SheetJS library</li>
+                <li>Follow <strong>Method B: Fully Offline Setup</strong> from Section 3</li>
+                <li>This ensures you have the latest version of all components</li>
+            </ol>
+
+            <div class="warning">
+                <strong>⚠️ Important:</strong> Do not transfer exported audit reports containing actual company data via unsecured email or unencrypted USB. These files contain sensitive supplier names, rates, and quantities. Use your organization's approved secure file transfer method.
+            </div>
+        </div>
+
+        <div class="section" id="troubleshooting">
+            <h2>11. Troubleshooting</h2>
+
+            <h3>Common Issues & Solutions</h3>
+            <table>
+                <tr><th>Issue</th><th>Cause</th><th>Solution</th></tr>
+                <tr>
+                    <td>"Error processing file"</td>
+                    <td>Corrupted Excel file or unsupported format</td>
+                    <td>Save the file as CSV (Save As → CSV UTF-8) and retry. CSV is the most reliable format.</td>
+                </tr>
+                <tr>
+                    <td>Excel file not parsing (SheetJS not loaded)</td>
+                    <td>Offline mode without local SheetJS file</td>
+                    <td>Convert file to CSV, or download <code>xlsx.full.min.js</code> and place it next to the HTML file.</td>
+                </tr>
+                <tr>
+                    <td>Dates showing as numbers (e.g., 45321)</td>
+                    <td>Excel serial dates not recognized</td>
+                    <td>The tool auto-detects Excel serial dates. If issues persist, format dates as DD/MM/YYYY in your source file before export.</td>
+                </tr>
+                <tr>
+                    <td>Very slow processing (>60 seconds)</td>
+                    <td>File too large (>100,000 rows) or low RAM</td>
+                    <td>Split the register into quarterly files. Close other browser tabs. Use Chrome for best performance.</td>
+                </tr>
+                <tr>
+                    <td>Browser shows blank page</td>
+                    <td>JavaScript disabled or file path issue</td>
+                    <td>Enable JavaScript in browser settings. Ensure the file is opened via double-click, not from a zip archive.</td>
+                </tr>
+                <tr>
+                    <td>Export button does nothing</td>
+                    <td>SheetJS missing or popup blocker</td>
+                    <td>Check for popup blockers. If using CSV fallback, the file auto-downloads. Check your Downloads folder.</td>
+                </tr>
+                <tr>
+                    <td>Columns not recognized</td>
+                    <td>Column names don't match expected headers</td>
+                    <td>Rename columns in your source file to match the expected names (case-insensitive match is supported, but special characters/spaces matter).</td>
+                </tr>
+                <tr>
+                    <td>All rows flagged as "High Risk" incorrectly</td>
+                    <td>Date format misinterpretation</td>
+                    <td>Ensure dates are in DD/MM/YYYY format. MM/DD/YYYY (US format) may cause false flags.</td>
+                </tr>
+            </table>
+
+            <h3>Performance Tips</h3>
+            <ul>
+                <li><strong>Chrome/Edge</strong> perform 2-3x faster than Firefox for large files due to V8 engine optimization</li>
+                <li>Close unnecessary browser tabs to free memory</li>
+                <li>For files >50 MB, consider splitting by quarter or division</li>
+                <li>CSV files process faster than Excel files</li>
+            </ul>
+
+            <h3>Getting Help</h3>
+            <p>Since this tool is fully offline and client-side:</p>
+            <ul>
+                <li>There is no "server" to check — all issues are local to your file or browser</li>
+                <li>Test with the provided sample files first to isolate whether the issue is with your data or the tool</li>
+                <li>If a specific row causes errors, check that row for unusual characters (tabs, newlines, special symbols) in text fields</li>
+            </ul>
+        </div>
+
+        <div class="section" id="security">
+            <h2>12. Data Security Protocols</h2>
+
+            <h3>What the Tool Does NOT Do</h3>
+            <ul>
+                <li>❌ Does not connect to the internet after page load</li>
+                <li>❌ Does not upload data to any server or cloud service</li>
+                <li>❌ Does not store cookies or localStorage data</li>
+                <li>❌ Does not retain data after browser refresh (all in-memory only)</li>
+                <li>❌ Does not modify your source Excel/CSV file</li>
+            </ul>
+
+            <h3>What the Tool DOES Do</h3>
+            <ul>
+                <li>✅ Reads your file into browser memory (RAM) only</li>
+                <li>✅ Processes entirely within JavaScript engine</li>
+                <li>✅ Generates export files to your local Downloads folder only</li>
+                <li>✅ Clears all data when you close the tab or click "New Audit"</li>
+            </ul>
+
+            <h3>Auditor Responsibilities</h3>
+            <div class="warning">
+                <strong>Your duty to protect data:</strong>
+                <ul>
+                    <li>Delete exported reports from the Downloads folder after copying to your secure audit working papers folder</li>
+                    <li>Do not leave the browser open with sensitive data when away from your desk</li>
+                    <li>Ensure the laptop has disk encryption (BitLocker/FileVault) enabled</li>
+                    <li>When using the tool on a shared computer, clear browser cache after use (though the tool doesn't cache data, browser may cache the HTML file)</li>
+                </ul>
+            </div>
+
+            <h3>Compliance Notes</h3>
+            <p>This tool is designed for use under the <strong>Companies Act, 2013</strong> (India) internal audit framework and supports:</p>
+            <ul>
+                <li>Section 134(5) — Internal financial controls</li>
+                <li>Section 138 — Internal audit function requirements</li>
+                <li>SA 240 (Standards on Auditing) — Fraud consideration</li>
+                <li>GST Input Tax Credit reconciliation support (through date/quantity verification)</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Quick Reference Card</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                <div>
+                    <h4>🚀 Launch</h4>
+                    <p>Double-click HTML → Upload CSV/Excel → Wait for processing</p>
+
+                    <h4>📊 Review</h4>
+                    <p>Check Dashboard cards → Click Tier tabs → Use filters to investigate</p>
+                </div>
+                <div>
+                    <h4>📥 Export</h4>
+                    <p>Click "Export Full Report" → Save .xlsx to working papers</p>
+
+                    <h4>🔄 New Audit</h4>
+                    <p>Click "New Audit" button or refresh page to clear memory</p>
+                </div>
+            </div>
+
+            <div class="success" style="margin-top: 25px;">
+                <strong>✅ Remember:</strong> This tool processes everything in your browser. No data leaves your machine. You are in complete control.
+            </div>
+        </div>
+    </div>
+
+    <div class="manual-footer">
+        <div class="container">
+            <p><strong>Purchase Register Audit Tool</strong> — Internal Auditor Edition</p>
+            <p style="margin-top: 8px;">Fully Offline • Client-Side Processing • Indian Pvt Ltd Compliant</p>
+            <p style="margin-top: 15px; font-size: 0.8rem; opacity: 0.7;">
+                This manual is part of the offline audit kit. Print this page (Ctrl+P) for physical reference.<br>
+                For CSV-only operation, no internet connection is ever required. For Excel support, download SheetJS once.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
